@@ -1,0 +1,6 @@
+{
+  "appId": "co.edu.uniagustiniana.agustingo",
+  "appName": "Agustingo",
+  "webDir": "dist",
+  "android": { "backgroundColor": "#7ac70c" }
+}

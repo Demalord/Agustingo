@@ -1,0 +1,47 @@
+name: APK Android
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # Capacitor 7 compila con Java 21 (con 17 falla)
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - run: npm ci
+
+      - name: Build web con las variables de Supabase
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          test -n "$VITE_SUPABASE_URL" && test -n "$VITE_SUPABASE_ANON_KEY" || { echo "::error::Faltan los secrets VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY"; exit 1; }
+          npm run build
+
+      - run: npx cap sync android
+
+      - name: Gradle assembleDebug
+        working-directory: frontend/android
+        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agustingo-debug-apk
+          path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
