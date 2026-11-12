@@ -13,7 +13,8 @@ export default function BotonGoogle() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: nativo ? REDIRECT_NATIVO : window.location.origin,
+        // origin + pathname: en GitHub Pages la app vive en /Agustingo/, no en la raíz
+        redirectTo: nativo ? REDIRECT_NATIVO : window.location.origin + window.location.pathname,
         skipBrowserRedirect: nativo,
       },
     });
